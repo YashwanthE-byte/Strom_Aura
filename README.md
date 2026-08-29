@@ -1,36 +1,42 @@
-# Strom_Aura
-## Strom Aura is a thermoelectric energy harvesting system that converts heat into electrical energy using the principle of the Seebeck Effect.The project demonstrates how waste heat can be utilized to generate usable power.
+🌩️ Storm Aura — Weather Website
 
-# Key Features
-Converts heat energy into electrical energy
-Lights an LED using generated power
-Displays temperature vs voltage relationship
-Eco-friendly energy solution
-Real-time working prototype
-# Technologies & Components
-Thermoelectric Generator (TEG / Peltier Module)
-Heat source (hot surface / flame)
-Heat sink (for cooling side)
-Arduino (optional, for monitoring)
-Multimeter / sensors
-# Working Principle
-When one side of the TEG is heated and the other is cooled, a temperature difference is created.
-This difference generates voltage due to the Seebeck Effect.
-The generated voltage powers small loads like LEDs.
-# Output & Results
-Successful generation of electrical voltage from heat
-LED glowing using generated power
-Observed relation between temperature difference and voltage output
-# Learning Outcomes
-Understood thermoelectric energy conversion
-Learned practical hardware implementation
-Analyzed system efficiency and limitations
-Explored renewable energy concepts
-# Future Improvements
-Increase efficiency using better materials
-Add battery storage system 🔋
-Power larger devices
-Integrate IoT monitoring system
-# Author
+A modern and responsive weather website that provides real-time weather information with a clean and user-friendly interface.
 
-##Yashwanth E
+✨ Features
+
+- 🌍 Search weather information by city
+- 🌡️ Displays current temperature and weather conditions
+- 💧 Shows humidity and other weather details
+- 🌬️ Displays wind/weather-related information
+- 🔄 Fetches real-time weather data using an API
+- 📱 Responsive design for desktop and mobile devices
+- 🎨 Clean and attractive user interface
+
+🛠️ Technologies Used
+
+- HTML5
+- CSS3
+- JavaScript
+- Weather API
+- Responsive Web Design
+
+🧠 What I Learned
+
+- Working with REST APIs
+- Fetching and handling JSON data
+- JavaScript DOM manipulation
+- Asynchronous programming using "fetch()"
+- Building responsive web interfaces
+- Handling user input and API responses
+
+🚀 Future Improvements
+
+- 📍 Current-location weather using GPS
+- 📅 5-day weather forecast
+- 🌙 Dark/Light mode
+- 🌧️ Dynamic weather animations
+- ⭐ Save favorite cities
+
+🎯 Project Goal
+
+The goal of Storm Aura was to strengthen my frontend development and JavaScript skills by building a practical application that works with real-time API data.
