@@ -1,42 +1,58 @@
-🌩️ Storm Aura — Weather Website
+# 🌦️ Strom Aura
 
-A modern and responsive weather website that provides real-time weather information with a clean and user-friendly interface.
+A modern weather application built with **React, TypeScript, Vite, and OpenWeather API**.
 
-✨ Features
+Strom Aura allows users to search for a city and view its current weather conditions and forecast.
 
-- 🌍 Search weather information by city
-- 🌡️ Displays current temperature and weather conditions
-- 💧 Shows humidity and other weather details
-- 🌬️ Displays wind/weather-related information
-- 🔄 Fetches real-time weather data using an API
-- 📱 Responsive design for desktop and mobile devices
-- 🎨 Clean and attractive user interface
+---
 
-🛠️ Technologies Used
+## 🚀 Features
 
-- HTML5
-- CSS3
-- JavaScript
-- Weather API
-- Responsive Web Design
+- 🔍 Search weather by city
+- 🌡️ Display current temperature
+- ☁️ Show current weather conditions
+- 💧 Display humidity
+- 💨 Display wind information
+- 📅 Weather forecast
+- 🌍 City-based weather search
+- 📱 Responsive user interface
+- ⚡ Fast development with Vite
+- 🔐 API key stored securely using environment variables
 
-🧠 What I Learned
+---
 
-- Working with REST APIs
-- Fetching and handling JSON data
-- JavaScript DOM manipulation
-- Asynchronous programming using "fetch()"
-- Building responsive web interfaces
-- Handling user input and API responses
+## 🛠️ Tech Stack
 
-🚀 Future Improvements
+- **React**
+- **TypeScript**
+- **Vite**
+- **OpenWeather API**
+- **HTML**
+- **CSS**
+- **JavaScript/TypeScript**
 
-- 📍 Current-location weather using GPS
-- 📅 5-day weather forecast
-- 🌙 Dark/Light mode
-- 🌧️ Dynamic weather animations
-- ⭐ Save favorite cities
+---
 
-🎯 Project Goal
+## 📂 Project Structure
 
-The goal of Storm Aura was to strengthen my frontend development and JavaScript skills by building a practical application that works with real-time API data.
+```text
+Strom_Aura/
+│
+├── src/
+│   ├── components/
+│   │   ├── SearchComponent.tsx
+│   │   ├── CurrentConditions.tsx
+│   │   └── ForecastPanel.tsx
+│   │
+│   ├── services/
+│   ├── context/
+│   ├── utils/
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── types.ts
+│
+├── .env
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── README.md
