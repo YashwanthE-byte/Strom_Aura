@@ -17,7 +17,7 @@ Strom Aura allows users to search for a city and view its current weather condit
 - 🌍 City-based weather search
 - 📱 Responsive user interface
 - ⚡ Fast development with Vite
-- 🔐 API key stored securely using environment variables
+- 🔐 OpenWeather API key configured through an environment variable
 
 ---
 
@@ -30,6 +30,15 @@ Strom Aura allows users to search for a city and view its current weather condit
 - **HTML**
 - **CSS**
 - **JavaScript/TypeScript**
+
+## Setup
+
+Copy `.env.example` to `.env.local` and set `VITE_OPENWEATHER_API_KEY` to your
+OpenWeather API key, then restart the Vite dev server. City search, current
+weather, forecast, and location lookup use this key.
+
+Vite exposes `VITE_` variables in browser code. Restrict the key in your
+OpenWeather account and use a server-side proxy if the key must remain secret.
 
 ---
 

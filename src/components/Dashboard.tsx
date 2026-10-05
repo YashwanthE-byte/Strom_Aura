@@ -36,7 +36,7 @@ export function Dashboard() {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude: lat, longitude: lon } = pos.coords;
-        const key = (import.meta as any).env.VITE_OPENWEATHER_API_KEY;
+        const key = import.meta.env.VITE_OPENWEATHER_API_KEY;
         try {
           const res = await fetch(`https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${key}`);
           const data = await res.json();
