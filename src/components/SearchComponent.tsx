@@ -14,6 +14,7 @@ export function SearchComponent({ onCitySelect }: SearchComponentProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchIdRef = useRef(0);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -23,7 +24,11 @@ export function SearchComponent({ onCitySelect }: SearchComponentProps) {
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      searchIdRef.current += 1;
+    };
   }, []);
 
   const doSearch = useCallback(async (value: string) => {
@@ -32,14 +37,17 @@ export function SearchComponent({ onCitySelect }: SearchComponentProps) {
       setResults([]);
       setShowDropdown(false);
       setError(null);
+      setIsLoading(false);
       return;
     }
 
+    const searchId = ++searchIdRef.current;
     setIsLoading(true);
     setError(null);
 
     try {
       const cities = await searchCities(trimmed);
+      if (searchId !== searchIdRef.current) return;
       if (cities.length === 0) {
         setError('City not found');
         setShowDropdown(false);
@@ -49,20 +57,25 @@ export function SearchComponent({ onCitySelect }: SearchComponentProps) {
         setError(null);
       }
     } catch (err) {
-      if (err instanceof ApiError && err.type === 'connection') {
-        setError('Connection error');
+      if (searchId !== searchIdRef.current) return;
+      if (err instanceof ApiError && err.type === 'configuration') {
+        setError(err.message);
+      } else if (err instanceof ApiError && err.type === 'not_found') {
+        setError('City not found');
       } else {
         setError('Connection error');
       }
       setShowDropdown(false);
     } finally {
-      setIsLoading(false);
+      if (searchId === searchIdRef.current) setIsLoading(false);
     }
   }, []);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
     setQuery(value);
+    searchIdRef.current += 1;
+    setIsLoading(false);
 
     // Clear previous debounce
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -87,6 +100,7 @@ export function SearchComponent({ onCitySelect }: SearchComponentProps) {
   }
 
   function handleSelect(city: CityResult) {
+    searchIdRef.current += 1;
     onCitySelect(city);
     setShowDropdown(false);
     setResults([]);

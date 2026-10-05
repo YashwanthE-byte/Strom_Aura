@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { fetchWeatherData, ApiError } from '../services/ForecastService';
+import { fetchWeatherData, reverseGeocode, ApiError } from '../services/ForecastService';
 import { SearchComponent } from './SearchComponent';
 import { CurrentConditions } from './CurrentConditions';
 import { ForecastPanel } from './ForecastPanel';
@@ -10,12 +10,11 @@ import { WeatherHero } from './WeatherHero';
 import type { CityResult } from '../types';
 
 const CURRENT_REFRESH_MS = 600_000;
-const FORECAST_REFRESH_MS = 3_600_000;
 
 export function Dashboard() {
   const { state, dispatch } = useAppContext();
   const currentIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const forecastIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const doFetchRef = useRef<(city: CityResult) => Promise<void>>(async () => {});
   const [geoStatus, setGeoStatus] = useState<'idle' | 'loading' | 'denied'>('idle');
 
   const doFetch = useCallback(async (city: CityResult) => {
@@ -24,32 +23,53 @@ export function Dashboard() {
       const data = await fetchWeatherData(city, state.unit);
       dispatch({ type: 'SET_WEATHER', payload: data });
     } catch (err) {
-      if (err instanceof ApiError && err.type === 'connection') {
+      if (err instanceof ApiError && err.type === 'configuration') {
+        dispatch({ type: 'SET_ERROR', payload: { type: 'configuration', message: err.message } });
+      } else {
         dispatch({ type: 'SET_ERROR', payload: { type: 'connection', previousData: state.weatherData } });
       }
     }
   }, [dispatch, state.unit, state.weatherData]);
 
+  doFetchRef.current = doFetch;
+
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setGeoStatus('denied');
+      return;
+    }
+
+    let cancelled = false;
     setGeoStatus('loading');
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude: lat, longitude: lon } = pos.coords;
-        const key = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        const fallbackCity: CityResult = {
+          id: `${lat},${lon},location`,
+          name: 'Your Location',
+          country: '',
+          lat,
+          lon,
+        };
+
+        let city = fallbackCity;
         try {
-          const res = await fetch(`https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${key}`);
-          const data = await res.json();
-          if (data?.[0]) {
-            const city: CityResult = { id: `${lat},${lon},0`, name: data[0].name, country: data[0].country, state: data[0].state, lat, lon };
-            setGeoStatus('idle');
-            doFetch(city);
-          }
-        } catch { setGeoStatus('idle'); }
+          city = (await reverseGeocode(lat, lon)) ?? fallbackCity;
+        } catch {
+          city = fallbackCity;
+        }
+
+        if (cancelled) return;
+        setGeoStatus('idle');
+        await doFetchRef.current(city);
       },
-      () => setGeoStatus('denied')
+      () => {
+        if (!cancelled) setGeoStatus('denied');
+      },
+      { timeout: 10_000, maximumAge: 300_000 }
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    return () => { cancelled = true; };
   }, []);
 
   const handleCitySelect = useCallback((city: CityResult) => doFetch(city), [doFetch]);
@@ -58,12 +78,9 @@ export function Dashboard() {
     if (!state.selectedCity) return;
     const city = state.selectedCity;
     if (currentIntervalRef.current) clearInterval(currentIntervalRef.current);
-    if (forecastIntervalRef.current) clearInterval(forecastIntervalRef.current);
     currentIntervalRef.current = setInterval(() => doFetch(city), CURRENT_REFRESH_MS);
-    forecastIntervalRef.current = setInterval(() => doFetch(city), FORECAST_REFRESH_MS);
     return () => {
       if (currentIntervalRef.current) clearInterval(currentIntervalRef.current);
-      if (forecastIntervalRef.current) clearInterval(forecastIntervalRef.current);
     };
   }, [state.selectedCity, doFetch]);
 
@@ -76,6 +93,10 @@ export function Dashboard() {
       <SearchComponent onCitySelect={handleCitySelect} />
 
       {state.error?.type === 'connection' && <div role="alert">Connection error — showing last known data</div>}
+      {state.error?.type === 'configuration' && <div role="alert">{state.error.message}</div>}
+      {geoStatus === 'denied' && !state.weatherData && (
+        <div role="status">Location unavailable. Search for a city to see its weather.</div>
+      )}
 
       {(state.isLoading || geoStatus === 'loading') && (
         <div className="loading-bar">{geoStatus === 'loading' ? '📍 Detecting your location…' : 'Loading weather data…'}</div>
@@ -93,7 +114,7 @@ export function Dashboard() {
           </div>
           <CurrentConditions data={state.weatherData.current} unit={state.unit} />
           <HourlyForecast data={state.weatherData} unit={state.unit} />
-          <ForecastPanel days={state.weatherData.forecast} unit={state.unit} isPartial={state.weatherData.forecast.length < 7} />
+          <ForecastPanel days={state.weatherData.forecast} unit={state.unit} isPartial={state.weatherData.forecast.length < 5} />
           <ChartRenderer days={state.weatherData.forecast} unit={state.unit} />
         </>
       ) : (

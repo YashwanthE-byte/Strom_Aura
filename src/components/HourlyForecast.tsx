@@ -6,15 +6,8 @@ interface Props {
   unit: TemperatureUnit;
 }
 
-// We store raw hourly slots on WeatherData via an optional field
 export function HourlyForecast({ data, unit }: Props) {
-  const slots = (data as any).hourly as Array<{
-    time: string; // "HH:MM"
-    tempCelsius: number;
-    iconCode: string;
-    conditionLabel: string;
-    rainProbability: number;
-  }> | undefined;
+  const slots = data.hourly;
 
   if (!slots || slots.length === 0) return null;
 

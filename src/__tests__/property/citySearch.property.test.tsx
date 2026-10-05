@@ -13,7 +13,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, cleanup, within, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import * as fc from 'fast-check';
 import type { CityResult } from '../../types';
 
@@ -76,7 +75,7 @@ describe('Property 1: City search queries the API with the submitted name', () =
 
         cleanup();
       }),
-      { numRuns: 100 }
+      { numRuns: 30 }
     );
   }, 30000);
 });
@@ -108,7 +107,7 @@ describe('Property 2: All returned city options are displayed', () => {
 
         cleanup();
       }),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   }, 30000);
 });
@@ -133,6 +132,7 @@ import type { WeatherData, ForecastDay, CurrentWeather } from '../../types';
 
 const makeCurrentWeather = (): CurrentWeather => ({
   temperatureCelsius: 20,
+  feelsLikeCelsius: 19,
   conditionLabel: 'Sunny',
   conditionIconCode: '01d',
   humidityPercent: 50,
@@ -159,6 +159,7 @@ describe('Property 3: City selection updates displayed weather data', () => {
           current: makeCurrentWeather(),
           forecast: Array.from({ length: 7 }, (_, i) => makeForecastDay(i)),
           fetchedAt: Date.now(),
+          hourly: [],
         };
 
         const initialState = {

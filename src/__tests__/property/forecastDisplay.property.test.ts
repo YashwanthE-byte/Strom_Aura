@@ -54,6 +54,7 @@ const cityArb = fc.record<CityResult>({
 
 const currentWeatherArb = fc.record({
   temperatureCelsius: fc.double({ min: -80, max: 60, noNaN: true }),
+  feelsLikeCelsius: fc.double({ min: -80, max: 60, noNaN: true }),
   conditionLabel: fc.string({ minLength: 1, maxLength: 30 }),
   conditionIconCode: fc.string({ minLength: 1, maxLength: 10 }),
   humidityPercent: fc.oneof(
@@ -80,6 +81,13 @@ const weatherDataArb = fc.record<WeatherData>({
   city: cityArb,
   current: currentWeatherArb,
   forecast: fc.array(forecastDayArb, { minLength: 1, maxLength: 7 }),
+  hourly: fc.array(fc.record({
+    time: fc.string(),
+    tempCelsius: fc.double({ noNaN: true }),
+    iconCode: fc.string(),
+    conditionLabel: fc.string(),
+    rainProbability: fc.integer({ min: 0, max: 100 }),
+  })),
   fetchedAt: fc.integer({ min: 1000000000000, max: 9999999999999 }),
 });
 
@@ -152,4 +160,3 @@ describe('Property 4: API failure retains previous data', () => {
     );
   });
 });
-

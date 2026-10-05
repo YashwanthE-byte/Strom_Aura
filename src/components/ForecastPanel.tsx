@@ -16,7 +16,7 @@ export function ForecastPanel({ days, unit, isPartial }: ForecastPanelProps) {
 
   return (
     <div className="forecast-panel">
-      <h3>📅 7-Day Forecast</h3>
+      <h3>📅 5-Day Forecast</h3>
       {isPartial && (
         <div role="status" aria-label="Partial forecast data available" className="partial-warning">
           Partial forecast data available
@@ -31,10 +31,10 @@ export function ForecastPanel({ days, unit, isPartial }: ForecastPanelProps) {
               alt={day.conditionLabel}
             />
             <div className="high-temp">
-              {displayTemp(day.highTempCelsius)}{unitLabel}
+              {Math.round(displayTemp(day.highTempCelsius))}{unitLabel}
             </div>
             <div className="low-temp">
-              {displayTemp(day.lowTempCelsius)}{unitLabel}
+              {Math.round(displayTemp(day.lowTempCelsius))}{unitLabel}
             </div>
             <div className="rain-probability">{day.rainProbabilityPercent}%</div>
           </div>

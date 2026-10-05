@@ -1,9 +1,9 @@
 import type { CityResult, WeatherData, TemperatureUnit, ForecastDay } from '../types';
 
-const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY as string;
+const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY?.trim();
 
 export class ApiError extends Error {
-  constructor(public type: 'connection' | 'not_found', message: string) {
+  constructor(public type: 'connection' | 'not_found' | 'configuration', message: string) {
     super(message);
     this.name = 'ApiError';
   }
@@ -21,7 +21,7 @@ interface GeoResult {
 // Current weather API response shape
 interface OWMCurrentResponse {
   weather: { description: string; icon: string }[];
-  main: { temp: number; humidity: number };
+  main: { temp: number; feels_like: number; humidity: number };
   wind: { speed: number; deg: number };
 }
 
@@ -98,14 +98,32 @@ async function safeFetch(url: string): Promise<Response> {
   }
 }
 
+function requireApiKey(): string {
+  if (!API_KEY) {
+    throw new ApiError(
+      'configuration',
+      'OpenWeather API key is missing. Set VITE_OPENWEATHER_API_KEY in .env.local and restart the app.'
+    );
+  }
+  return API_KEY;
+}
+
+function throwApiResponseError(status: number): never {
+  if (status === 401 || status === 403) {
+    throw new ApiError('configuration', 'OpenWeather rejected the API key. Check that it is valid and enabled.');
+  }
+  if (status === 404) {
+    throw new ApiError('not_found', 'The requested weather data was not found.');
+  }
+  throw new ApiError('connection', `OpenWeather API error: ${status}`);
+}
+
 export async function searchCities(query: string): Promise<CityResult[]> {
-  const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=5&appid=${API_KEY}`;
+  const key = requireApiKey();
+  const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=5&appid=${key}`;
   const res = await safeFetch(url);
 
-  if (!res.ok) {
-    if (res.status === 404) throw new ApiError('not_found', 'City not found');
-    throw new ApiError('connection', `API error: ${res.status}`);
-  }
+  if (!res.ok) throwApiResponseError(res.status);
 
   const data: GeoResult[] = await res.json();
 
@@ -119,23 +137,43 @@ export async function searchCities(query: string): Promise<CityResult[]> {
   }));
 }
 
+export async function reverseGeocode(lat: number, lon: number): Promise<CityResult | null> {
+  const key = requireApiKey();
+  const url = `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${key}`;
+  const res = await safeFetch(url);
+  if (!res.ok) throwApiResponseError(res.status);
+
+  const [result] = await res.json() as GeoResult[];
+  if (!result?.name) return null;
+
+  return {
+    id: `${result.lat},${result.lon},0`,
+    name: result.name,
+    country: result.country,
+    state: result.state,
+    lat,
+    lon,
+  };
+}
+
 export async function fetchWeatherData(
   city: CityResult,
   _unit: TemperatureUnit
 ): Promise<WeatherData> {
   const { lat, lon } = city;
+  const key = requireApiKey();
 
   const [currentRes, forecastRes] = await Promise.all([
     safeFetch(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${key}&units=metric`
     ),
     safeFetch(
-      `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&cnt=56`
+      `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${key}&units=metric&cnt=40`
     ),
   ]);
 
   if (!currentRes.ok || !forecastRes.ok) {
-    throw new ApiError('connection', 'Failed to fetch weather data');
+    throwApiResponseError(!currentRes.ok ? currentRes.status : forecastRes.status);
   }
 
   const current: OWMCurrentResponse = await currentRes.json();
@@ -154,6 +192,7 @@ export async function fetchWeatherData(
     city,
     current: {
       temperatureCelsius: current.main.temp,
+      feelsLikeCelsius: current.main.feels_like,
       conditionLabel: current.weather[0]?.description ?? '',
       conditionIconCode: current.weather[0]?.icon ?? '',
       humidityPercent: sanitizeHumidity(current.main.humidity),
@@ -163,5 +202,5 @@ export async function fetchWeatherData(
     forecast: buildForecastDays(forecast.list),
     fetchedAt: Date.now(),
     hourly,
-  } as WeatherData & { hourly: typeof hourly };
+  };
 }

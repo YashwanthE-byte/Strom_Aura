@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { searchCities, fetchWeatherData, sanitizeHumidity, ApiError } from '../../services/ForecastService';
+import { searchCities, reverseGeocode, fetchWeatherData, sanitizeHumidity, ApiError } from '../../services/ForecastService';
 import type { CityResult } from '../../types';
 
 // Helper to create a mock fetch response
@@ -18,7 +18,7 @@ const mockGeoResponse = [
 
 const mockCurrentResponse = {
   weather: [{ description: 'clear sky', icon: '01d' }],
-  main: { temp: 20.5, humidity: 65 },
+  main: { temp: 20.5, feels_like: 19.5, humidity: 65 },
   wind: { speed: 5.0, deg: 270 },
 };
 
@@ -91,6 +91,34 @@ describe('ForecastService', () => {
     });
   });
 
+  describe('reverseGeocode', () => {
+    it('maps a reverse geocoding response to a city', async () => {
+      vi.stubGlobal('fetch', mockFetch([
+        { name: 'London', country: 'GB', state: 'England', lat: 51.5, lon: -0.1 },
+      ]));
+
+      await expect(reverseGeocode(51.5074, -0.1278)).resolves.toMatchObject({
+        name: 'London',
+        country: 'GB',
+        state: 'England',
+        lat: 51.5074,
+        lon: -0.1278,
+      });
+    });
+
+    it('returns null when no city is found at the coordinates', async () => {
+      vi.stubGlobal('fetch', mockFetch([]));
+      await expect(reverseGeocode(0, 0)).resolves.toBeNull();
+    });
+
+    it('reports rejected API credentials explicitly', async () => {
+      vi.stubGlobal('fetch', mockFetch({}, false, 401));
+      await expect(reverseGeocode(0, 0)).rejects.toMatchObject({
+        type: 'configuration',
+      });
+    });
+  });
+
   describe('fetchWeatherData', () => {
     const city: CityResult = {
       id: '51.5074,-0.1278,0',
@@ -112,6 +140,7 @@ describe('ForecastService', () => {
 
       expect(result.city).toEqual(city);
       expect(result.current.temperatureCelsius).toBe(20.5);
+      expect(result.current.feelsLikeCelsius).toBe(19.5);
       expect(result.current.conditionLabel).toBe('clear sky');
       expect(result.current.conditionIconCode).toBe('01d');
       expect(result.current.humidityPercent).toBe(65);

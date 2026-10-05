@@ -9,11 +9,20 @@ export interface CityResult {
 
 export interface CurrentWeather {
   temperatureCelsius: number;
+  feelsLikeCelsius: number;
   conditionLabel: string;
   conditionIconCode: string;
   humidityPercent: number | null; // null when discarded (out of 0–100 range)
   windSpeedKph: number;
   windDirection: string;
+}
+
+export interface HourlyForecastSlot {
+  time: string;
+  tempCelsius: number;
+  iconCode: string;
+  conditionLabel: string;
+  rainProbability: number;
 }
 
 export interface ForecastDay {
@@ -30,6 +39,7 @@ export interface WeatherData {
   city: CityResult;
   current: CurrentWeather;
   forecast: ForecastDay[];
+  hourly: HourlyForecastSlot[];
   fetchedAt: number; // Unix timestamp ms
 }
 
@@ -38,6 +48,7 @@ export type TemperatureUnit = 'celsius' | 'fahrenheit';
 export type AppError =
   | { type: 'city_not_found' }
   | { type: 'connection'; previousData: WeatherData | null }
+  | { type: 'configuration'; message: string }
   | { type: 'invalid_data'; field: string };
 
 export interface AppState {

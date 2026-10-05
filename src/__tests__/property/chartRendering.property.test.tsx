@@ -8,7 +8,7 @@ vi.mock('recharts', async () => {
   return {
     ...actual,
     ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
-    LineChart: ({ children, data }: any) => (
+    AreaChart: ({ children, data }: any) => (
       <div data-testid="line-chart" data-count={data?.length}>
         {children}
       </div>
@@ -18,7 +18,7 @@ vi.mock('recharts', async () => {
         {children}
       </div>
     ),
-    Line: () => null,
+    Area: () => null,
     Bar: ({ children }: any) => <div data-testid="bar">{children}</div>,
     XAxis: ({ dataKey, data }: any) => (
       <div data-testid="x-axis" data-key={dataKey}>
@@ -28,6 +28,8 @@ vi.mock('recharts', async () => {
     YAxis: () => null,
     CartesianGrid: () => null,
     Tooltip: () => null,
+    Legend: () => null,
+    ReferenceLine: () => null,
     Cell: ({ fill }: any) => <div data-testid="cell" data-fill={fill} />,
   };
 });
@@ -120,12 +122,12 @@ describe('Property 11: Tooltip content contains exact value and date', () => {
           const point = chartData[i];
           const expectedHigh =
             unit === 'fahrenheit'
-              ? celsiusToFahrenheit(day.highTempCelsius)
-              : day.highTempCelsius;
+              ? Math.round(celsiusToFahrenheit(day.highTempCelsius))
+              : Math.round(day.highTempCelsius);
           const expectedLow =
             unit === 'fahrenheit'
-              ? celsiusToFahrenheit(day.lowTempCelsius)
-              : day.lowTempCelsius;
+              ? Math.round(celsiusToFahrenheit(day.lowTempCelsius))
+              : Math.round(day.lowTempCelsius);
 
           return (
             point.dayLabel === day.dayLabel &&

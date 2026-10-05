@@ -8,6 +8,7 @@ import { CurrentWeather } from '../../types';
 
 const baseData: CurrentWeather = {
   temperatureCelsius: 20,
+  feelsLikeCelsius: 18,
   conditionLabel: 'Sunny',
   conditionIconCode: '01d',
   humidityPercent: 55,
@@ -28,6 +29,11 @@ describe('CurrentConditions', () => {
     const expected = celsiusToFahrenheit(20); // 68
     const matches = screen.getAllByText(new RegExp(`${expected}.*°F`));
     expect(matches.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('displays the separate feels-like temperature', () => {
+    render(<CurrentConditions data={baseData} unit="celsius" />);
+    expect(screen.getByText('18°C')).toBeInTheDocument();
   });
 
   it('shows N/A when humidityPercent is null', () => {

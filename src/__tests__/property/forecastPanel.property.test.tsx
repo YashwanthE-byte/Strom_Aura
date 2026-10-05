@@ -81,8 +81,8 @@ describe('Property 7: Forecast day cards contain all required fields', () => {
           // 3. high temperature is present
           const expectedHigh =
             unit === 'fahrenheit'
-              ? celsiusToFahrenheit(day.highTempCelsius)
-              : day.highTempCelsius;
+              ? Math.round(celsiusToFahrenheit(day.highTempCelsius))
+              : Math.round(day.highTempCelsius);
           const unitLabel = unit === 'fahrenheit' ? '°F' : '°C';
           const highText = textOf(card, 'high-temp');
           const hasHigh =
@@ -91,8 +91,8 @@ describe('Property 7: Forecast day cards contain all required fields', () => {
           // 4. low temperature is present
           const expectedLow =
             unit === 'fahrenheit'
-              ? celsiusToFahrenheit(day.lowTempCelsius)
-              : day.lowTempCelsius;
+              ? Math.round(celsiusToFahrenheit(day.lowTempCelsius))
+              : Math.round(day.lowTempCelsius);
           const lowText = textOf(card, 'low-temp');
           const hasLow =
             lowText.includes(String(expectedLow)) && lowText.includes(unitLabel);

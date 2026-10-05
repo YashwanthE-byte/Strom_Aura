@@ -10,6 +10,9 @@ export function CurrentConditions({ data, unit }: CurrentConditionsProps) {
   const temperature = unit === 'fahrenheit'
     ? Math.round(celsiusToFahrenheit(data.temperatureCelsius) * 10) / 10
     : Math.round(data.temperatureCelsius * 10) / 10;
+  const feelsLike = unit === 'fahrenheit'
+    ? Math.round(celsiusToFahrenheit(data.feelsLikeCelsius) * 10) / 10
+    : Math.round(data.feelsLikeCelsius * 10) / 10;
   const unitLabel = unit === 'fahrenheit' ? '°F' : '°C';
 
   return (
@@ -53,7 +56,7 @@ export function CurrentConditions({ data, unit }: CurrentConditionsProps) {
         <div className="cc-card">
           <div className="cc-card-icon">🌡️</div>
           <div className="cc-card-label">Feels Like</div>
-          <div className="cc-card-value">{temperature}{unitLabel}</div>
+          <div className="cc-card-value">{feelsLike}{unitLabel}</div>
         </div>
       </div>
 

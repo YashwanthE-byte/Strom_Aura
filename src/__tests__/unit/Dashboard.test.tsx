@@ -16,14 +16,16 @@ vi.mock('recharts', async () => {
   return {
     ...actual,
     ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
-    LineChart: ({ children, data }: any) => <div data-testid="line-chart" data-count={data?.length}>{children}</div>,
+    AreaChart: ({ children, data }: any) => <div data-testid="line-chart" data-count={data?.length}>{children}</div>,
     BarChart: ({ children, data }: any) => <div data-testid="bar-chart" data-count={data?.length}>{children}</div>,
-    Line: () => null,
+    Area: () => null,
     Bar: ({ children }: any) => <div>{children}</div>,
     XAxis: () => null,
     YAxis: () => null,
     CartesianGrid: () => null,
     Tooltip: () => null,
+    Legend: () => null,
+    ReferenceLine: () => null,
     Cell: () => null,
   };
 });
@@ -54,6 +56,7 @@ const makeWeatherData = (): WeatherData => ({
   city: mockCity,
   current: {
     temperatureCelsius: 15,
+    feelsLikeCelsius: 14,
     conditionLabel: 'Cloudy',
     conditionIconCode: '04d',
     humidityPercent: 70,
@@ -70,6 +73,7 @@ const makeWeatherData = (): WeatherData => ({
     rainProbabilityPercent: i * 10,
   })),
   fetchedAt: Date.now(),
+  hourly: [],
 });
 
 /**
@@ -140,20 +144,19 @@ describe('Dashboard refresh timers', () => {
     expect(mockFetchWeatherData).toHaveBeenCalledTimes(1);
   });
 
-  it('re-fetches after 60 minutes (forecast refresh)', async () => {
+  it('refreshes current weather and forecast together every 10 minutes', async () => {
     const weatherData = makeWeatherData();
     mockFetchWeatherData.mockResolvedValue(weatherData);
 
     renderWithSeed(weatherData);
     await act(async () => {});
 
-    // Advance 60 minutes — triggers both 10-min (×6) and 60-min (×1) intervals
+    // Six combined refreshes occur over one hour without a duplicate hourly call.
     await act(async () => {
       vi.advanceTimersByTime(3_600_000);
     });
 
-    // At least 7 calls: 6 from 10-min interval + 1 from 60-min interval
-    expect(mockFetchWeatherData.mock.calls.length).toBeGreaterThanOrEqual(7);
+    expect(mockFetchWeatherData).toHaveBeenCalledTimes(6);
   });
 
   it('clears intervals on unmount — no more calls after unmount', async () => {

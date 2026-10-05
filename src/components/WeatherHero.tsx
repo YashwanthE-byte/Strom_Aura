@@ -14,7 +14,7 @@ const FEATURES = [
   { icon: '🌡️', label: 'Temperature' },
   { icon: '💧', label: 'Humidity' },
   { icon: '💨', label: 'Wind' },
-  { icon: '📅', label: '7-Day Forecast' },
+  { icon: '📅', label: '5-Day Forecast' },
   { icon: '📈', label: 'Temp Trend' },
   { icon: '🌧️', label: 'Rain Chart' },
 ];
